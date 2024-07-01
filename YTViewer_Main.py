@@ -23,7 +23,7 @@ class YouTubeApp:
     def fetch_videos(self):
         url = self.url_entry.get()
         if not url:
-            messagebox.showerror("Chyba", "Prosím, zadajte URL kanálu.")
+            messagebox.showerror("Chyba", "Prosím, zadajte korektnú URL kanálu.")
             return
 
         try:
