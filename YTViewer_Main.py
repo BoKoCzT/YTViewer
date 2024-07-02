@@ -1,40 +1,59 @@
+import pytube
+import vlc
 import tkinter as tk
-from tkinter import messagebox
-from pytube import Channel
+from tkinter import ttk
 
-class YouTubeApp:
+class YouTubePlayer:
     def __init__(self, root):
         self.root = root
-        self.root.title("YouTube Video Viewer")
-        self.root.geometry("600x800")
+        self.root.title("YouTube Player")
 
-        self.label = tk.Label(root, text="Zadajte URL YouTube kanálu:")
-        self.label.pack(pady=10)
+        # Vytvorenie vstupného poľa pre URL
+        self.url_label = ttk.Label(root, text="YouTube URL:")
+        self.url_label.pack(side=tk.TOP)
 
-        self.url_entry = tk.Entry(root, width=50)
-        self.url_entry.pack(pady=10)
+        self.url_entry = ttk.Entry(root, width=50)
+        self.url_entry.pack(side=tk.TOP)
 
-        self.fetch_button = tk.Button(root, text="Načítať videá", command=self.fetch_videos)
-        self.fetch_button.pack(pady=10)
+        self.load_button = ttk.Button(root, text="Load", command=self.load_video)
+        self.load_button.pack(side=tk.TOP)
 
-        self.video_listbox = tk.Listbox(root, width=80, height=20)
-        self.video_listbox.pack(pady=10)
+        # Vytvorenie tlačidiel pre ovládanie prehrávania
+        self.play_button = ttk.Button(root, text="Play", command=self.play_video)
+        self.play_button.pack(side=tk.LEFT)
 
-    def fetch_videos(self):
+        self.pause_button = ttk.Button(root, text="Pause", command=self.pause_video)
+        self.pause_button.pack(side=tk.LEFT)
+
+        self.stop_button = ttk.Button(root, text="Stop", command=self.stop_video)
+        self.stop_button.pack(side=tk.LEFT)
+
+        # Vytvorenie widgetu pre prehrávanie videa
+        self.video_frame = ttk.Frame(root)
+        self.video_frame.pack(expand=True, fill="both")
+
+        self.instance = vlc.Instance()
+        self.player = self.instance.media_player_new()
+
+        self.player.set_hwnd(self.video_frame.winfo_id())
+
+    def load_video(self):
         url = self.url_entry.get()
-        if not url:
-            messagebox.showerror("Chyba", "Prosím, zadajte korektnú URL kanálu.")
-            return
+        yt = pytube.YouTube(url)
+        stream = yt.streams.get_highest_resolution()
+        media = self.instance.media_new(stream.url)
+        self.player.set_media(media)
 
-        try:
-            channel = Channel(url)
-            self.video_listbox.delete(0, tk.END)
-            for video in channel.videos:
-                self.video_listbox.insert(tk.END, video.title)
-        except Exception as e:
-            messagebox.showerror("Chyba", f"Nepodarilo sa načítať videá: {e}")
+    def play_video(self):
+        self.player.play()
+
+    def pause_video(self):
+        self.player.pause()
+
+    def stop_video(self):
+        self.player.stop()
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = YouTubeApp(root)
+    player = YouTubePlayer(root)
     root.mainloop()
