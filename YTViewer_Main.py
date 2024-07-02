@@ -19,6 +19,11 @@ class YouTubePlayer:
         self.load_button = ttk.Button(root, text="Load", command=self.load_video)
         self.load_button.pack(side=tk.TOP)
 
+        # Vytvorenie ComboBoxu pre výber rozlíšenia
+        self.resolution_var = tk.StringVar(root)
+        self.resolution_combobox = ttk.Combobox(root, textvariable=self.resolution_var, state="readonly")
+        self.resolution_combobox.pack(side=tk.TOP)
+
         # Vytvorenie tlačidiel pre ovládanie prehrávania
         self.play_button = ttk.Button(root, text="Play", command=self.play_video)
         self.play_button.pack(side=tk.LEFT)
@@ -41,23 +46,16 @@ class YouTubePlayer:
 
         self.player.set_hwnd(self.video_frame.winfo_id())
 
-        # Vytvorenie menu pre výber rozlíšenia
-        self.resolution_var = tk.StringVar(root)
-        self.resolution_menu = ttk.OptionMenu(root, self.resolution_var, "Select Resolution")
-        self.resolution_menu.pack(side=tk.TOP)
-
     def load_video(self):
         url = self.url_entry.get()
         yt = pytube.YouTube(url)
         self.streams = yt.streams.filter(progressive=True, file_extension='mp4')
         resolutions = [stream.resolution for stream in self.streams]
-        self.resolution_var.set(resolutions[0])
-        self.resolution_menu['menu'].delete(0, 'end')
-        for res in resolutions:
-            self.resolution_menu['menu'].add_command(label=res, command=tk._setit(self.resolution_var, res))
+        self.resolution_combobox["values"] = resolutions  # Nastavíme dostupné hodnoty do ComboBoxu
+        self.resolution_combobox.set(resolutions[0])  # Nastavíme predvolené rozlíšenie
 
     def play_video(self):
-        selected_resolution = self.resolution_var.get()
+        selected_resolution = self.resolution_combobox.get()
         stream = next(stream for stream in self.streams if stream.resolution == selected_resolution)
         media = self.instance.media_new(stream.url)
         self.player.set_media(media)
@@ -72,7 +70,7 @@ class YouTubePlayer:
     def save_video(self):
         url = self.url_entry.get()
         yt = pytube.YouTube(url)
-        stream = next(stream for stream in self.streams if stream.resolution == self.resolution_var.get())
+        stream = next(stream for stream in self.streams if stream.resolution == self.resolution_combobox.get())
         folder_selected = filedialog.askdirectory()
         if folder_selected:
             stream.download(output_path=folder_selected)
