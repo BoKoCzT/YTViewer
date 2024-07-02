@@ -2,6 +2,7 @@ import pytube
 import vlc
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 
 class YouTubePlayer:
     def __init__(self, root):
@@ -28,6 +29,9 @@ class YouTubePlayer:
         self.stop_button = ttk.Button(root, text="Stop", command=self.stop_video)
         self.stop_button.pack(side=tk.LEFT)
 
+        self.save_button = ttk.Button(root, text="Save Video", command=self.save_video)
+        self.save_button.pack(side=tk.LEFT)
+
         # Vytvorenie widgetu pre prehrávanie videa
         self.video_frame = ttk.Frame(root)
         self.video_frame.pack(expand=True, fill="both")
@@ -52,6 +56,15 @@ class YouTubePlayer:
 
     def stop_video(self):
         self.player.stop()
+
+    def save_video(self):
+        url = self.url_entry.get()
+        yt = pytube.YouTube(url)
+        stream = yt.streams.get_highest_resolution()
+        folder_selected = filedialog.askdirectory()
+        if folder_selected:
+            stream.download(output_path=folder_selected)
+            tk.messagebox.showinfo("Download Complete", "Video has been downloaded successfully!")
 
 if __name__ == "__main__":
     root = tk.Tk()
